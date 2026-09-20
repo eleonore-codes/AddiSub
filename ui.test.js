@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {fresh,KEY} from '../storage.js';import {start,nextTask} from '../session.js';import {model} from '../math.js';
+test('UI integration: absolute grid, manual helper input, corrections, reload snapshot, pause, reset confirmation',async()=>{
+ const original={document:globalThis.document,window:globalThis.window,localStorage:globalThis.localStorage,setInterval:globalThis.setInterval};const handlers={},app={innerHTML:'',addEventListener:(n,f)=>handlers[n]=f},notice={hidden:true},data=new Map();let s=fresh();start(s,1,'ui');nextTask(s);s.session.active.task=model(987,248);data.set(KEY,JSON.stringify(s));
+ globalThis.document={hidden:false,querySelector:sel=>sel==='#app'?app:notice,addEventListener:()=>{}};globalThis.window={addEventListener:()=>{}};globalThis.localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};globalThis.setInterval=()=>0;
+ const click=dataset=>handlers.click({target:{closest:()=>({dataset,disabled:false})}}),snapshot=()=>JSON.parse(data.get(KEY));
+ try{await import('../app.js?uitest');assert.match(app.innerHTML,/Training fortsetzen/);click({action:'resume'});
+  for(const row of ['label','top','bottom','helper','result']){const places=[...app.innerHTML.matchAll(new RegExp(`data-row="${row}" data-place="(\\d)"`,'g'))].map(m=>+m[1]);assert.deepEqual(places,[3,2,1,0]);}
+  assert.deepEqual(snapshot().session.active.helpers,{});click({digit:'5'});click({action:'check'});assert.match(app.innerHTML,/Prüfe die Hilfszeile/);assert.equal(snapshot().session.active.results[0],5);
+  click({cell:'helper:1'});click({digit:'1'});click({action:'check'});assert.equal(snapshot().session.active.p,1);click({digit:'2'});click({action:'check'});assert.equal(snapshot().session.active.results[0],5);assert.equal(snapshot().session.active.p,1);
+  click({digit:'3'});click({cell:'helper:2'});click({digit:'1'});click({action:'check'});click({digit:'2'});click({action:'check'});assert.match(app.innerHTML,/Noch eine Stelle/);click({action:'more'});click({digit:'1'});click({action:'check'});click({action:'finish'});assert.equal(snapshot().history[0].key,'987+248');assert.equal(snapshot().history[0].ok,false);
+  click({action:'pause'});assert.match(app.innerHTML,/<h1>Pause/);click({action:'progress'});click({action:'reset'});assert.equal(snapshot().history.length,1);click({action:'confirm-reset'});assert.equal(snapshot().history.length,0);assert.equal(snapshot().successNumber,0);
+ }finally{for(const [k,v] of Object.entries(original))if(v===undefined)delete globalThis[k];else globalThis[k]=v;}
+});

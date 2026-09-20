@@ -1,0 +1,28 @@
+# AddiSub – Übergabe
+
+Implementierter Stand mit 33 bestandenen automatisierten Tests. Noch keine vollständige Geräte- und Veröffentlichungsabnahme. Ausführliche Regeln und Start-/Deployment-Anleitung: `README.md`; Prüfnachweise und Grenzen: `TEST-REPORT.md`.
+
+1. **Architektur:** unabhängige Module für Mathematik, UI, Lernmodell, Sitzungen, Erfolge, lokale Speicherung und Karten. Statische ES-Module, kein Build und keine Laufzeitabhängigkeiten.
+2. **Dateien:** `index.html`, `styles.css`, `app.js`, `config.js`, `math.js`, `learning.js`, `session.js`, `rewards.js`, `storage.js`, `share.js`, `manifest.json`, `service-worker.js`, `icon.svg`, `icon-192.png`, `icon-512.png`, `serve.js`, `package.json`, `.nojekyll`, `.gitignore`, vier Testdateien sowie README, Prüfbericht und diese Übergabe.
+3. **Stellenmodell:** absolute Exponenten 0–6 für E/Z/H/T/ZT/HT/M. Jede Spalte speichert beide Ziffern, eingehende Hilfszahl, lokale Rechnung, Ergebnisziffer und ausgehende Hilfszahl samt Zielstelle. Alle UI-Zeilen teilen dieselben Grid-Spalten.
+4. **Addition:** `top+bottom+incoming`; Rest modulo 10 als Ergebnis, Ganzzahlquotient durch 10 als Übertrag. Zwischen Operandenspalten manuelle Hilfs-1; abschließende führende 1 direkt ins Ergebnis.
+5. **Subtraktion:** `top−bottom−incoming`; bei negativem Wert 10 ergänzen und Hilfs-1 zur unteren nächsten Stelle. Keine Ausstreich-/Entleihnotation.
+6. **Hilfszahlen:** eigenes Objekt mit Stellenindex als Schlüssel und numerischem Wert. Kind trägt sie ein; Validator erkennt fehlend, unnötig, falsch und falsch platziert. Richtige Vorarbeit bleibt erhalten.
+7. **Generator:** Stufen 1/2 null Übergänge; 3/4 exakt ein Übergang, bei 3 mit einer Hilfs-1; 5/6 mindestens zwei; 7 mindestens zwei einschließlich Nullübergang; 8 adaptive Mischung; 9/10 dieselben Familien bis 100.000/1.000.000. Zahlenbreite wächst nach je acht fehlerfreien Aufgaben. Vollständige Bereichstabelle im README.
+8. **Freischaltung:** vorherige Stufe offen; dort ≥12 Rechnungen, ≥30 Stellen, ≥2 Erfolge, ≥85 % jüngste fehlerfreie Rechnungen; relevante Fertigkeiten ausreichend beobachtet und mindestens sicher oder richtig-langsam. Nie erneute Sperrung.
+9. **Lernmodell:** einzelne Fertigkeiten und Rechenkombinationen; jüngste 24 Beobachtungen. Unter 12 keine stabile Aussage; ≥90 % sicher; über 18 Sekunden je Stelle richtig-langsam; Automatisierung erst ab 36 Beobachtungen, ≥96 % jüngster Genauigkeit und ausreichender Zeitmessung ≤10 Sekunden. Fehler, Abstände und A-Schwerpunkt beeinflussen die Auswahl.
+10. **Fehler:** sämtliche 14 vorgegebenen technischen Kategorien sind implementiert. Eltern sehen kurze deutsche Hinweise statt Rohcodes; wiederkehrende Muster benötigen mindestens drei betroffene Rechnungen.
+11. **Qualifizierender Erfolg:** 40 % fehlerfreie Rechnungen + 40 % richtige Ergebnisstellen + 20 % richtige erforderliche Hilfszahlen; ohne Hilfszahlen 50/50. Schwelle 90 %. A benötigt ≥3 Rechnungen/8 Stellen, B ≥2 Rechnungen/6 Stellen. Alle Rechenwege müssen abschließend aufgelöst sein.
+12. **3+2 Minuten:** 180.000/120.000 ms aktive Zeit, kein Countdown, laufende Rechnung wird beendet. A-Bericht → bewusster Start B → Abschluss. Pause und Hintergrund zählen nicht. B nutzt A-Evidenz.
+13. **Fortschritt:** Lerntage, Erfolge, aktuelle/längste Erfolgsfolge, offene Stufen, Grundrechenarten, Überträge, Hilfs-1, vorherige Hilfszahlen, Nullstellen, Stellenwerte, Zahlengrößen und wiederkehrende Fehler.
+14. **Erfolgsnummer und Folge:** persistierte Phasen-ID verhindert doppelte Vergabe. Lokales Kalenderdatum; mehrere Erfolge am selben Tag zählen einzeln, der Tag in der Folge einmal. Ein verpasster Tag erzeugt keine negative Botschaft.
+15. **Karten:** lokale 1080×1080-PNG mit Datum, Nummer, Folge, Wertung, Trainingsart und wahrheitsgemäßer Anerkennung. System-Teildialog, alternativ Download; kein Name.
+16. **Speicherschema:** Version 1, Schlüssel `addisub-learning-v1`. Fertigkeiten, Kombinationen, bis 400 Aufgaben, bis 300 Fehlereinträge, Tagesdaten, aktuelle Sitzung samt Eingaben, Fortschritt, Erfolgszähler, Folgen, Lerntermine, Vergabe-IDs und Karten. Kein stiller Reset beschädigter Daten. Bestätigter Elternreset und JSON-Export.
+17. **Offline/PWA:** vollständige relative Assetliste, atomarer Installationscache, versionsbezogene Erneuerung, keine Fremdanfragen; Aktivierung nach Ende alter App-Sitzungen. Reale Geräteprüfung noch offen.
+18. **Testergebnis:** 33 Tests bestanden, darunter 40.000 zufällige Rechenmodelle und 8.960 generierte Aufgaben. Details im Prüfbericht. Browserstart durch die Umgebung blockiert.
+19. **987+248:** geprüft: Ergebnisstellen 5→3→2→1, Hilfszahlen Z1/H1, eingehende Überträge und Fehlerdiagnosen.
+20. **731−265:** geprüft: 11−5=6; 13−7=6; 7−3=4, korrekte/mangelnde/falsch platzierte/unnötige Hilfszahlen.
+21. **Nullübergänge:** geprüft: 500−278, 1002−487, 5002−2786, 10000−4638, 1000000−1, 1000−999, 100−99.
+22. **iPhone 13:** mobile CSS und flexibles siebenstelliges Raster vorhanden. Tatsächliche 390×844-Geometrie und iOS-Safari wurden nicht abgenommen; kein erfundener Screenshot-Nachweis.
+23. **Grenzen:** Browser-/Geräteprüfung, native Kartenfreigabe und echter Offlinebetrieb offen; kein GitHub-Push/Pages-Livelauf; JSON-Export derzeit ohne Importfunktion; Lernschwellen sind konfigurierbare Ausgangswerte ohne pädagogische Langzeitvalidierung. Kein bekanntes mathematisches Problem in den ausgeführten Tests.
+24. **Deployment:** Repository `eleonore-codes/AddiSub` erstellen, Ordnerinhalt in Repositorywurzel auf `main` übertragen, Settings → Pages → Deploy from a branch → main → /(root), speichern und erfolgreichen Lauf abwarten. Zieladresse `https://eleonore-codes.github.io/AddiSub/`. Exakte Start- und Geräteprüfschritte im README.

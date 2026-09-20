@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile,stat} from 'node:fs/promises';import vm from 'node:vm';
+test('PWA caches all runtime files under repository subpath and serves them offline',async()=>{const source=await readFile(new URL('../service-worker.js',import.meta.url),'utf8'),handlers={},cached=new Map();let claimed=false,offline=false;const scope='https://eleonore-codes.github.io/AddiSub/';
+ const cache={addAll:async files=>{for(const f of files){const path=f==='./'?'./index.html':f;await stat(new URL('../'+path,import.meta.url));cached.set(new URL(f,scope).href,'CACHED:'+f);}},match:async req=>cached.get(new URL(typeof req==='string'?req:req.url).href.split('?')[0])};
+ const caches={open:async()=>cache,keys:async()=>['addisub-old','other-app'],delete:async key=>{assert.equal(key,'addisub-old');}};
+ vm.runInNewContext(source,{URL,caches,fetch:()=>{if(offline)throw Error('offline');return 'network';},self:{location:{origin:new URL(scope).origin},registration:{scope},clients:{claim:async()=>{claimed=true;}},addEventListener:(name,fn)=>handlers[name]=fn}});
+ let pending;handlers.install({waitUntil:p=>pending=p});await pending;handlers.activate({waitUntil:p=>pending=p});await pending;assert.ok(claimed);offline=true;
+ for(const file of ['','app.js','math.js','styles.css','icon-192.png']){handlers.fetch({request:{url:scope+file,method:'GET'},respondWith:p=>pending=p});assert.match(await pending,/^CACHED/);}
+ let intercepted=false;handlers.fetch({request:{url:'https://example.org/a.js',method:'GET'},respondWith:()=>intercepted=true});assert.equal(intercepted,false);
+});
+test('no remote runtime imports; all HTML assets are subpath safe',async()=>{for(const name of ['app.js','math.js','learning.js','storage.js','session.js','rewards.js','share.js','styles.css','index.html']){const text=await readFile(new URL('../'+name,import.meta.url),'utf8');assert.ok(!/https?:\/\//.test(text),name);assert.ok(!/(?:src|href)="\/(?!\/)/.test(text),name);}});
