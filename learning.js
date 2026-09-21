@@ -11,6 +11,7 @@ export function observe(map,key,ok,ms,date=dayKey()){
  const s=map[key]||={n:0,correct:0,recent:[],lastDate:date};s.n++;s.correct+=+ok;s.lastDate=date;s.recent.push({ok,ms});s.recent=s.recent.slice(-C.recent);
 }
 export function recordLearning(state,task,work,date=dayKey()){
+ if(work.legacyAssisted)return;
  for(const col of task.columns){const e=work.evidence[col.place];if(!e)throw Error('Fehlender Rechenschritt');
   const op=task.operation==='+'?'add':'sub',keys=[op,'place',`digits${task.columns.length}`];
   if(!task.transitions)keys.push(op==='add'?'addPlain':'subPlain');
@@ -28,4 +29,3 @@ export function chooseFamily(state,level,focus=[],rng=Math.random,today=dayKey()
  const weights=pool.map(f=>{let weight=1+(focus.includes(f)?C.focusWeight:0);for(const k of familySkills(f)){const s=state.skills[k];if(!s){weight+=C.weakWeight;continue;}const accuracy=s.recent.filter(x=>x.ok).length/s.recent.length;weight+=(1-accuracy)*C.weakWeight;if(mastery(s)==='Richtig, aber noch langsam')weight+=1;weight+=Math.min(1,Math.max(0,ordinal(today)-ordinal(s.lastDate))/C.spacingDays)*C.spacingWeight;}weight+=Math.min(C.weakWeight,state.errors.slice(-24).filter(e=>e.family===f).length);return weight;});
  let n=rng()*weights.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){n-=weights[i];if(n<0)return pool[i];}return pool.at(-1);
 }
-export function unlock(state){const opened=[];for(let level=2;level<=10;level++){if(state.unlockedLevels.includes(level))continue;const p=state.levelProgress[level-1];const required=LEVELS[level-1].families.flatMap(familySkills);if(state.unlockedLevels.includes(level-1)&&p&&p.tasks>=C.unlockTasks&&p.columns>=C.unlockColumns&&p.successes>=C.unlockSuccesses&&p.recent.filter(Boolean).length/p.recent.length>=C.unlockAccuracy&&required.every(k=>['Sicher','Automatisiert','Richtig, aber noch langsam'].includes(mastery(state.skills[k])))){state.unlockedLevels.push(level);opened.push(level);}}return opened;}

@@ -1,4 +1,4 @@
-# AddiSub
+# AddiSub 1.1.1
 
 Schriftliche Addition und Subtraktion für ein Kind in Klasse 4: feste Stellen, kurze Texte, große Ziffern, manuelle Hilfszahlen und ruhiges Training. Pädagogische Schwester von MultiDivi, mit eigenständigem Rechenkern. Ohne Konto, Werbung, Tracking, CDN oder externe Laufzeitbibliotheken.
 
@@ -16,13 +16,14 @@ Dann `http://localhost:8787/AddiSub/` öffnen. Ein Doppelklick auf `index.html` 
 
 1. Training starten. Die Einer sind zuerst aktiv.
 2. Ergebnisziffer über die Zifferntasten eintragen.
-3. Falls nötig, die passende Stelle der kleinen Hilfszeile antippen und die Hilfszahl selbst eintragen.
-4. „Stelle prüfen“. Bei einem Fehler bleiben alle bisherigen Eingaben erhalten. Die aktive Eingabe kann mit „Löschen“ korrigiert werden.
-5. Nach den vorhandenen Operandenspalten entscheidet das Kind zwischen „Fertig“ und „Weitere Stelle“. Damit verrät die Oberfläche nicht, ob das Ergebnis eine zusätzliche Ziffer braucht.
+3. Falls nötig, eine Stelle der kleinen Hilfszeile antippen und die Hilfszahl selbst eintragen. Auch falsche oder fehlende Hilfszahlen unterbrechen die Eingabe nicht.
+4. Nach jeder Ergebnisziffer wandert die Auswahl eine Stelle nach links. Alle Ergebnis- und Hilfsfelder bleiben frei antippbar, änderbar und löschbar.
+5. Das Kind bestimmt selbst das Ende und drückt **„Ergebnis prüfen“**. Erst jetzt werden das numerische Ergebnis und der vollständige schriftliche Rechenweg getrennt geprüft.
+6. Fehlerhafte Stellen werden markiert, ohne die richtige Ziffer einzusetzen. Alle bisherigen Einträge bleiben stehen. Korrigieren und erneut prüfen; nach korrektem Abschluss führt „Weiter“ zur nächsten Aufgabe oder zum Phasenbericht.
 
 Die Hilfszeile wird immer angeboten. Auch bei Aufgaben ohne Übergang bleibt sie sichtbar. Zukünftige Ergebnisstellen werden nicht abhängig vom Ergebnis hervorgehoben. Addition zeigt grundsätzlich eine neutrale Reservespalte, soweit innerhalb der sieben Stellen möglich. Subtraktion zeigt die Breite der Operanden. Führende Nullstellen bei Subtraktion werden mitgerechnet und bleiben sichtbar.
 
-Eine erforderliche Hilfs-1 fehlt? Das Ergebnis allein genügt nicht. Die App prüft beides. Richtig gelöste Stellen bleiben gesperrt und erhalten; die noch offene Stelle bleibt korrigierbar.
+Eine erforderliche Hilfs-1 fehlt? Das Ergebnis allein genügt nicht. Die App prüft beides. Alle Stellen bleiben bis zur vollständig gelösten Rechnung editierbar. Vor dem ersten Prüfen gibt es weder Richtig-/Falsch-Meldungen noch entsprechende Farben oder Sperren.
 
 ## Architektur und Dateien
 
@@ -30,7 +31,7 @@ Eine erforderliche Hilfs-1 fehlt? Das Ergebnis allein genügt nicht. Die App pr�
 | --- | --- |
 | `config.js` | Zeiten, Schwellen, Stufen, Zahlenräume, Fehlerprioritäten |
 | `math.js` | Stellenmodell, Generator, unabhängige Validierung, Fehlerdiagnose |
-| `learning.js` | Fertigkeiten, Kombinationen, Auswahl, Freischaltung |
+| `learning.js` | Fertigkeiten, Kombinationen und Auswahl |
 | `session.js` | Rechenweg und Phasenübergänge |
 | `rewards.js` | Trainingswertung, Erfolge und Tagesfolgen |
 | `storage.js` | versionierte lokale Speicherung, Validierung, Datumsfunktionen |
@@ -94,7 +95,7 @@ Nach jeweils acht vollständig fehlerfreien Aufgaben der ausgewählten Stufe wä
 
 ## Lernen und Auswahl
 
-Pro Stelle werden Fertigkeiten beobachtet: Addition/Subtraktion, übergangsfreie Verfahren, Übertrag/Hilfs-1, vorhandene Hilfs-1, mehrere Übergänge, Nullübergänge, Stellenwert und Stellenbreite. Zusätzlich werden Rechenkombinationen `operation:top:bottom:incoming` gespeichert. Eine Beobachtung wird nach Abschluss der Stelle verbucht; Korrekturen zählen weiter als Lernhinweis. Die App schreibt keine Hilfszahl automatisch.
+Pro Stelle werden Fertigkeiten beobachtet: Addition/Subtraktion, übergangsfreie Verfahren, Übertrag/Hilfs-1, vorhandene Hilfs-1, mehrere Übergänge, Nullübergänge, Stellenwert und Stellenbreite. Zusätzlich werden Rechenkombinationen `operation:top:bottom:incoming` gespeichert. Die unveränderliche erste Gesamtabgabe bildet die Lernbeobachtung; sie wird beim erfolgreichen Abschluss verbucht. Änderungen vor dem ersten Prüfen sind eigenständige Selbstkorrekturen und keine Fehler. Korrekturen nach Feedback überschreiben den ersten Versuch nicht. Die App schreibt keine Hilfszahl automatisch.
 
 Je Fertigkeit: Gesamtbeobachtungen, richtige Beobachtungen, letztes lokales Datum und letzte 24 Beobachtungen. Unter 12 Beobachtungen: „Noch nicht ausreichend geübt.“ Danach unter 90 % jüngster Genauigkeit: „Noch unsicher“. Bei mindestens 90 %: „Sicher“, beziehungsweise „Richtig, aber noch langsam“ bei einer mittleren Stellenzeit über 18 Sekunden und mindestens zwölf brauchbaren Zeitmessungen. „Automatisiert“ erfordert mindestens 36 Beobachtungen, mindestens 96 % jüngste Genauigkeit sowie mindestens zwölf Zeitmessungen mit durchschnittlich höchstens zehn Sekunden. Unterbrochene Rechnungen liefern keine Geschwindigkeitsevidenz.
 
@@ -110,7 +111,7 @@ Implementiert: `BASIC_ADDITION_ERROR`, `BASIC_SUBTRACTION_ERROR`, `PLACE_VALUE_E
 
 ## Training: 3 + 2 Minuten
 
-Zustände: `a → between → b → done`. Es gibt keinen dritten Phasenübergang. Zeiten: 180.000 bzw. 120.000 ms aktive Trainingszeit. Ohne sichtbaren Countdown. Beim Zeitablauf wird die ganze laufende Rechnung beendet. Die Berichte und eine bewusste Starttaste trennen die Phasen. Pause, Hintergrund und Berichte zählen nicht mit. Nach Abschluss kann später bewusst ein neues Training gestartet werden.
+Zustände: `a → between → b → done`. Es gibt keinen dritten Phasenübergang. Zeiten: 180.000 bzw. 120.000 ms aktive Trainingszeit. Ohne sichtbaren Countdown. Beim Zeitablauf darf das Kind alle Eingaben abschließen, selbst prüfen und bis zur vollständigen Auflösung korrigieren. Erst danach endet die Phase. Die Berichte und eine bewusste Starttaste trennen die Phasen. Pause, Hintergrund und Berichte zählen nicht mit. Nach Abschluss kann später bewusst ein neues Training gestartet werden. Die Anzeige einer bereits vollständig richtigen Rechnung zählt nicht weiter zur Trainingszeit.
 
 Runden werden nur verglichen, wenn mindestens zwei Aufgaben je Runde mit überlappender Rechenfamilie und Stellenbreite vorliegen. Angezeigt werden die normierten Wertungen, keine unbelegte Fortschrittsbehauptung.
 
@@ -126,15 +127,25 @@ Fehlende, falsche oder falsch platzierte Hilfszahlen bleiben Fehler, auch wenn s
 
 Jede Phase hat eine persistierte ID `sessionId:phase`. `awarded` verhindert Doppelzählung, auch nach Neuladen. Beide Phasen können unabhängig je einen Erfolg erzeugen. Der Erfolgszähler bleibt bis zu einem bewusst bestätigten Reset erhalten. Erfolg und Fertigkeitsbeherrschung sind getrennte Modelle.
 
-## Freischaltung
+## Alle Stufen frei verfügbar
 
-Für Stufe n muss n−1 offen sein. Auf n−1 erforderlich: mindestens zwölf abgeschlossene Rechnungen, 30 Ergebnisstellen, zwei qualifizierende Erfolge, mindestens 85 % vollständig richtige Aufgaben im jüngsten Fenster sowie ausreichende, mindestens sichere bzw. richtige-langsame Beobachtungen für alle relevanten Familienfertigkeiten der vorherigen Stufe. „Automatisiert“ ist keine Pflicht. Freigeschaltete Stufen bleiben dauerhaft offen und auswählbar. Alle Kriterien liegen zentral in `config.js`.
+Alle Stufen 1–10 sind beim ersten Start, nach einem Reset und nach dem Laden alter Lernstände sofort wählbar. Frühere `unlockedLevels`-Werte werden auf 1–10 normalisiert, ohne Lernbeobachtungen, Erfolge, Tagesfolgen oder Historie zurückzusetzen. Sie kontrollieren keinen Zugang mehr. Es gibt keine Schlossdarstellung und keine Freischaltungsereignisse. Die Elternansicht zeigt stattdessen bereits geübte Stufen.
+
+Auch ein laufendes Training verhindert die bewusste Wahl einer anderen Stufe nicht: seine Sitzung wird in `pausedSessions` zwischengespeichert. Beim Zurückwechseln kann die bestehende Rechnung weitergeführt werden. Jede Sitzung behält ihren eigenen 3+2-Minuten-Ablauf.
+
+## Erster Prüfversuch und Korrekturen
+
+Aktuelle Rechnungen verwenden `inputVersion: 2`. `firstSubmission` bewahrt Ergebnis- und Hilfseingaben, numerische Korrektheit, Pfadkorrektheit, betroffene Felder, Fehlerkategorien, Eingabezeit und Stellenzeiten der ersten Abgabe. `validation` hält die letzte Prüfung; beim Editieren wird nur diese Rückmeldung entfernt. `resolved` zeigt den Abschlussstatus.
+
+`submissions` zählt Prüfungen; `corrections` ist die Zahl erneuter Prüfungen nach dem ersten Versuch; `correctionEdits` zählt Feldänderungen nach der ersten Prüfung. Abgeschlossene Historieneinträge enthalten außerdem `firstSubmissionCorrect`, `finalCorrect`, `finalSubmission` und `independent`. Die 90-%-Wertung verwendet ausschließlich die erste selbstständige Abgabe und die bestehenden 40/40/20- bzw. 50/50-Gewichte. Korrekturen erzeugen keinen zusätzlichen Punktabzug und zählen als erfolgreich abgeschlossene Rechnung, verwandeln aber einen zunächst falschen Versuch nicht nachträglich in einen unabhängigen Erfolg.
+
+Bei bereits begonnenen alten Rechnungen bleiben alle Einträge erhalten. Wurde dort schon stellenweise Feedback gegeben, ist diese eine übernommene Rechnung als `legacyAssisted` markiert und wird vorsichtig nicht als neue unabhängige Leistung gewertet. Ab der nächsten Rechnung gilt das neue Modell vollständig. Alte abgeschlossene Historieneinträge werden nicht umgedeutet.
 
 ## Lerntage, Tagesfolgen und Fortschritt
 
 Ein Lerntag enthält mindestens eine abgeschlossene Rechnung. Die Erfolgsfolge zählt lokale Kalendertage mit mindestens einem qualifizierenden Erfolg. Zwei Erfolge am gleichen Datum erhöhen den Erfolgszähler zweimal, die Tagesfolge nur einmal. Nach einem ausgelassenen Tag wird die aktuelle Folge 0 angezeigt; beim nächsten Erfolg beginnt sie bei 1. Die längste Folge bleibt erhalten. Keine negative Bewertung einer Unterbrechung.
 
-Die Elternansicht zeigt Lerntage, Erfolge, aktuelle und längste Folge, offene Stufen, Fertigkeiten einschließlich Hilfs-1/Überträgen/Nullen/großen Zahlen, wiederkehrende Fehlermuster und die letzten 20 Erfolgskarten. Alle Karten bleiben gespeichert. Reset steht nur im Einstellungsbereich und benötigt eine zweite ausdrückliche Bestätigung.
+Die Elternansicht zeigt Lerntage, Erfolge, aktuelle und längste Folge, geübte Stufen, Fertigkeiten einschließlich Hilfs-1/Überträgen/Nullen/großen Zahlen, wiederkehrende Fehlermuster und die letzten 20 Erfolgskarten. Alle Karten bleiben gespeichert. Reset steht nur im Einstellungsbereich und benötigt eine zweite ausdrückliche Bestätigung.
 
 ## Karten
 
@@ -144,7 +155,7 @@ Lokales Canvas, 1080×1080 PNG. Datum, Erfolgsnummer, Tagesfolge, normierte Trai
 
 Schlüssel `addisub-learning-v1`, `schemaVersion: 1`.
 
-Gespeichert: `revision`, `skills`, `facts`, `history` (max. 400), `errors` (max. 300), `daily`, `session` samt aktueller Aufgabe/Eingaben/Zeit/Evidenz, `unlockedLevels`, `levelProgress`, `successNumber`, `currentStreak`, `longestStreak`, `lastQualifyingSuccessDate`, `learningDays`, `awarded`, `cards`, `selectedLevel`.
+Gespeichert: `revision`, `skills`, `facts`, `history` (max. 400), `errors` (max. 300), `daily`, `pausedSessions`, `session` samt aktueller Aufgabe/Eingaben/Zeit/Evidenz, `unlockedLevels`, `levelProgress`, `successNumber`, `currentStreak`, `longestStreak`, `lastQualifyingSuccessDate`, `learningDays`, `awarded`, `cards`, `selectedLevel`.
 
 Jede Eingabe, jeder Phasenwechsel und etwa alle zwei aktiven Sekunden werden gespeichert. Das Speichern ist ein einzelner localStorage-Schreibvorgang. Unbekannte Versionen oder beschädigte Daten werden nicht stillschweigend überschrieben. Bei Speicherfehlern oder Änderungen aus einem anderen Fenster stoppt das Training mit einem Hinweis. Ein Export als JSON ist im Elternbereich möglich; ein Import ist derzeit nicht Teil der App. Für eine spätere Schemaversion muss eine ausdrückliche Migration ergänzt werden.
 
@@ -152,7 +163,7 @@ Kein Name, Konto oder Cloudprofil. Browserdaten löschen oder Geräteverlust kan
 
 ## Offline und Updates
 
-Relative Pfade, lokales Manifest, Version `addisub-v1.0.0`. Installation lädt die komplette Laufzeitdateiliste atomar in den Cache. Danach werden dieselben Dateien offline ausgeliefert. Beim Aktivieren einer neuen Version werden nur alte AddiSub-Caches gelöscht. Kein erzwungenes `skipWaiting`: ein Update übernimmt nach Schließen der alten App-Fenster, damit eine laufende Rechnung nicht durch einen Versionswechsel gestört wird. Bei Programmänderungen die Cacheversion erhöhen und die Dateiliste aktualisieren. Erst nach einmaligem vollständigem Online-Laden ist Offlinebetrieb vorgesehen.
+Relative Pfade, lokales Manifest, Version `addisub-v1.1.1`. Installation lädt die komplette Laufzeitdateiliste atomar in den Cache. Danach werden dieselben Dateien offline ausgeliefert. Beim Aktivieren einer neuen Version werden nur alte AddiSub-Caches gelöscht. Kein erzwungenes `skipWaiting`: ein Update übernimmt nach Schließen der alten App-Fenster, damit eine laufende Rechnung nicht durch einen Versionswechsel gestört wird. Bei Programmänderungen die Cacheversion erhöhen und die Dateiliste aktualisieren. Erst nach einmaligem vollständigem Online-Laden ist Offlinebetrieb vorgesehen.
 
 ## Tests
 
@@ -179,4 +190,8 @@ Die App ist für `https://eleonore-codes.github.io/AddiSub/` vorbereitet. Diese 
 
 ## Noch offene Abnahme
 
-Automatisierte Logik- und simulierte Integrationstests bestehen. Eine echte Browserprüfung auf 390×844, die Darstellung/der Teildialog auf iOS, reale Service-Worker-Installation samt Flugmodus und der veröffentlichte GitHub-Pages-Endpunkt sind noch nicht abgenommen. Die lokale Browserumgebung hat die Vorschau blockiert. Die App wird deshalb als implementierter, automatisiert geprüfter Stand übergeben, nicht als vollständig gerätegetestete Veröffentlichung.
+52 automatisierte Tests bestehen. Zusätzlich wurde die App im echten integrierten Browser bei 390×844 geprüft: verzögerte Rückmeldung, freie Korrekturen, sieben exakt ausgerichtete Spalten mit je 48 px Breite, kein horizontaler Überlauf, sichtbarer Prüfknopf und alle Stufen frei. Ein realer Service-Worker-Test mit abgeschaltetem Testserver bestätigte Neuladen, Wiederherstellung der Eingaben, Gesamtprüfung, Phasenwechsel und freie Stufenwahl offline. Offen bleiben ein physisches iPhone mit Safari, dessen Home-Bildschirm-Installation und nativer Teildialog sowie der veröffentlichte GitHub-Pages-Endpunkt. Details: `TEST-REPORT.md`.
+
+## Aktualisierung vom 21.09.2026
+
+Der GitHub-Stand enthielt noch Version 1.0. Der geprüfte Stand mit offenen Stufen wird nun auch in das bestehende Repository übernommen. `aktualisieren.html` lädt den neuen Service Worker und aktiviert ihn bewusst, ohne localStorage oder Lernstände zu löschen. Auf der Startseite steht zur Kontrolle Version 1.1.1.

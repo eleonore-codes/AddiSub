@@ -1,4 +1,4 @@
-export const C = Object.freeze({schemaVersion:1,generalMs:180000,focusMs:120000,successThreshold:.90,minTasks:{a:3,b:2},minColumns:{a:8,b:6},recent:24,minObservations:12,secureAccuracy:.90,automatedObservations:36,automatedAccuracy:.96,slowColumnMs:18000,automatedColumnMs:10000,unlockTasks:12,unlockColumns:30,unlockSuccesses:2,unlockAccuracy:.85,growAfter:8,historyLimit:400,errorLimit:300,weakWeight:4,spacingWeight:2,focusWeight:7,spacingDays:7,maxSameFamily:2,maxGenerationAttempts:20000});
+export const C = Object.freeze({schemaVersion:1,generalMs:180000,focusMs:120000,successThreshold:.90,minTasks:{a:3,b:2},minColumns:{a:8,b:6},recent:24,minObservations:12,secureAccuracy:.90,automatedObservations:36,automatedAccuracy:.96,slowColumnMs:18000,automatedColumnMs:10000,growAfter:8,historyLimit:400,errorLimit:300,weakWeight:4,spacingWeight:2,focusWeight:7,spacingDays:7,maxSameFamily:2,maxGenerationAttempts:20000});
 export const PLACES=['E','Z','H','T','ZT','HT','M'];
 export const NAMES=['Einer','Zehner','Hunderter','Tausender','Zehntausender','Hunderttausender','Million'];
 export const LEVELS=[null,

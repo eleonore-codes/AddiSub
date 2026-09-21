@@ -51,6 +51,30 @@ export function checkColumn(t,p,results,helpers){
  return {ok:errors.length===0,resultOK,helperOK:!wrong&&(c.helperRequired?h===1:h===null),errors};
 }
 export function fits(t,family){return family===1?t.operation==='+'&&t.transitions===0:family===2?t.operation==='-'&&t.transitions===0:family===3?t.operation==='+'&&t.transitions===1&&t.columns.some(c=>c.helperRequired):family===4?t.operation==='-'&&t.transitions===1:family===5?t.operation==='+'&&t.transitions>=2:family===6?t.operation==='-'&&t.transitions>=2:family===7?t.zeroTransition&&t.transitions>=2:false;}
+// Capacity depends on operands, never on the answer key.
+export const gridWidth=t=>Math.min(7,t.operandWidth+(t.operation==='+'?1:0));
+export function checkCalculation(t,results,helpers){
+ const errors=[],fields={result:{},helper:{}},add=t.operation==='+';
+ const expectedHelpers=new Set(t.columns.filter(c=>c.helperRequired).map(c=>c.helperPlace));
+ const missing=[...expectedHelpers].filter(p=>helpers[p]!==1);
+ const extras=Object.keys(helpers).map(Number).filter(p=>helpers[p]!==null&&!expectedHelpers.has(p));
+ const issue=(type,kind,place,sourcePlace=place)=>{errors.push({type,kind,place,sourcePlace});fields[kind][place]=false;};
+ let value=0,hasDigit=false;
+ for(const [p,n] of Object.entries(results)){if(n===null)continue;hasDigit=true;value+=n*10**Number(p);}
+ const numericCorrect=hasDigit&&value===t.result;
+ for(const c of t.columns){const p=c.place,correct=results[p]===c.expected;fields.result[p]=correct;
+  if(!correct){const without=add?(c.top+c.bottom)%10:(c.top-c.bottom+10)%10;
+   const type=results[p]==null?'FINAL_COLUMN_ERROR':c.incoming&&results[p]===without?(add?'PREVIOUS_CARRY_NOT_USED':'SUBTRACTION_HELPER_NOT_USED'):c.zeroTransition?'ZERO_TRANSITION_ERROR':p>=t.operandWidth?'FINAL_COLUMN_ERROR':add?'BASIC_ADDITION_ERROR':'BASIC_SUBTRACTION_ERROR';
+   issue(type,'result',p);
+  }
+ }
+ for(const p of Object.keys(results).map(Number))if(results[p]!==null&&p>=t.columns.length)issue('FINAL_COLUMN_ERROR','result',p,t.columns.length-1);
+ for(const p of expectedHelpers){fields.helper[p]=helpers[p]===1;if(helpers[p]!==1){issue(add?'CARRY_MISSING':'SUBTRACTION_HELPER_MISSING','helper',p,p-1);if(fields.result[p-1]===false)issue(add?'CARRY_NOT_RECOGNIZED':'SUBTRACTION_HELPER_NOT_RECOGNIZED','helper',p,p-1);}}
+ for(const p of extras)issue(missing.length?(add?'CARRY_WRONG_COLUMN':'SUBTRACTION_HELPER_WRONG_COLUMN'):'UNNECESSARY_CARRY','helper',p,Math.min(Math.max(0,p-1),t.columns.length-1));
+ const entered=t.columns.map(c=>results[c.place]),expected=t.columns.map(c=>c.expected);
+ if(!numericCorrect&&entered.every(Number.isInteger)&&[...entered].sort().join('')===[...expected].sort().join(''))for(const c of t.columns)if(!fields.result[c.place])issue('PLACE_VALUE_ERROR','result',c.place);
+ return {ok:numericCorrect&&errors.length===0,numericCorrect,pathCorrect:errors.length===0,value:hasDigit?value:null,fields,errors};
+}
 export function generate(level,{family=LEVELS[level]?.families[0],growth=0,rng=Math.random,exclude=[]}={}){
  const rule=LEVELS[level];if(!rule||!rule.families.includes(family))throw Error('Ungültiges Lernziel');
  const digits=rule.digits[Math.min(Math.floor(growth/C.growAfter),rule.digits.length-1)],max=rule.max||10**digits-1;

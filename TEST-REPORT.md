@@ -1,52 +1,72 @@
-# Prüfbericht – AddiSub
+# Prüfbericht – AddiSub 1.1
 
-Stand: 20.09.2026. Node.js 24.20.0 unter Windows.
+## Automatisierte Tests
 
-## Ausgeführt
+Ausgeführt unter Windows/Node.js 24.20.0:
 
-`node --test --test-isolation=none tests/*.test.js`
+```sh
+node --test --test-isolation=none tests/*.test.js
+```
 
-33 Tests bestanden, 0 fehlgeschlagen. Der normale Node-Testlauf mit separaten Kindprozessen wurde durch die lokale Prozess-Sandbox blockiert; der identische Testbestand lief anschließend ohne Prozessisolation erfolgreich.
+**52 Tests bestanden, 0 fehlgeschlagen.**
 
-### Mathematisches Modell
+- 40.000 zufällige Rechenmodelle unabhängig nachgerechnet.
+- 8.960 generierte Aufgaben, alle Stufen/Familien und vier Wachstumsstände.
+- Addition/Subtraktion, bekannte Hilfs-1-Methode, Mehrfachübergänge und Nullübergänge unverändert bestanden.
+- Explizite komplette Abgaben: 23+14, 987+248, 999+1, 99999+1, 999999+1, 731−265, 638427−259684, 5002−2786, 1000000−1.
+- Ergebnislänge steuert weder Rasterkapazität noch Eingabefortschritt.
+- Falsche Ergebnis- und Hilfseingaben blockieren keine folgende Stelle; keine Prüfung vor Abgabe.
+- Freies Ändern/Löschen; richtige Felder bleiben erhalten; Nachkorrektur und erneute Abgabe.
+- Numerisches Ergebnis separat vom vollständigen schriftlichen Pfad geprüft.
+- Erster Prüfversuch über Serialisierung und Korrektur hinweg unverändert; adaptive Evidenz und Erfolgswertung bleiben unabhängig von späterer Auflösung.
+- Timer läuft ab, aber die Rechnung darf einschließlich Korrekturen beendet werden. Zwei Phasen, keine dritte.
+- Alle zehn Stufen mit frischem/älterem Speicher, nach Reset und Reload; Wechsel zu einer anderen Stufe ohne Verlust einer begonnenen Rechnung.
+- Erfolgsnummern, Tagesfolgen, Grundmengen, Fertigkeitszustände und adaptive Auswahl bestanden.
+- Echte UI-Klickhandler in einer minimalen DOM-Testumgebung geprüft; kein Ersatz für die unten zusätzlich ausgeführte Browserprüfung.
+- Service-Worker-Dateiliste, Cache-Aktivierung, Offlineantworten, relative Pfade und fehlende externe Laufzeitanfragen automatisiert geprüft.
 
-- 20.000 Zufallszahlenpaare, jeweils Addition und nichtnegative Subtraktion: **40.000 Modelle** unabhängig geprüft.
-- Zusätzlich **8.960 generierte Aufgaben**: für jede Stufe, jede erlaubte Familie und vier Wachstumsstände je 80 Aufgaben. Stellenzahl, Zahlenraum, Übergangsbedingungen und das vollständige Modell geprüft.
-- `987+248=1235`: E5/Z3/H2/T1; Hilfszahlen Z1/H1; keine zusätzliche Hilfszahl in der führenden Tausender-Ergebnisstelle.
-- `731−265=466`: E `11−5`, Z `13−(6+1)`, H `7−(2+1)`.
-- Fehlende und falsch platzierte Hilfszahlen, unnötige Hilfszahl und vergessene eingehende Hilfszahl geprüft.
-- Nullfälle 500−278, 1002−487, 5002−2786, 10000−4638, 1000000−1, 1000−999 und 100−99 bestanden.
-- Ungleiche Operandenbreiten bis zur Million geprüft.
-- Bewusst manipuliertes Modell wird abgewiesen.
+## Zusätzliche reale Browserprüfung
 
-### Lernen, Belohnung, Sitzung und Speicherung
+Der lokale Server hatte einen Windows-Pfadvergleich mit gemischten Trennzeichen. Er wurde auf `fileURLToPath` umgestellt. Danach lieferten Startseite, App-/Sitzungs-/Speichermodule, Service Worker und Manifest unter `/AddiSub/` HTTP 200 mit passenden MIME-Typen. Der zunächst blockierte Browser konnte die App anschließend öffnen.
 
-- Normierte Wertung, Mindestumfang und Ausschluss unvollständiger Rechenwege.
-- Wiederholte Erfolgsvergabe nach Serialisierung erzeugt keine Doppelzählung.
-- Zwei Erfolge an einem Tag, Folgetag, ausgelassener Tag und längste Folge.
-- Beobachtungsminimum, langsame korrekte Arbeit und Automatisierungsminimum.
-- Fehler aus A bestimmen den Schwerpunkt; Grundabdeckung bleibt bestehen; maximal zwei gleiche Familien hintereinander bei gemischten Stufen.
-- Freischaltung benötigt wiederholte Evidenz und bleibt dauerhaft bestehen.
-- Zeitablauf beendet erst nach Abschluss der Rechnung die 3- bzw. 2-Minuten-Phase; keine dritte Phase.
-- Frühere richtige Eingaben bleiben nach späteren Fehlern erhalten.
-- Serialisierung und Wiederherstellung; unbekannte Schemaversion wird ohne automatisches Löschen abgewiesen.
+In einem echten integrierten Browser:
 
-### Simulierte UI-Integration
+1. Frischer Lernstand: Alle zehn Stufen ohne Sperrhinweise sichtbar; Stufe 10 direkt gewählt und gestartet.
+2. Aufgabe 84251−84110: absichtlich E=9 eingegeben; Auswahl wechselte zu Z, keinerlei Richtig-/Falsch-Rückmeldung. Weitere Stellen ohne Unterbrechung eingegeben. Unnötige Hilfs-1 eingetragen und vor dem Absenden gelöscht, ebenfalls ohne Rückmeldung.
+3. Erst „Ergebnis prüfen“ meldete die Einerstelle. Alle anderen Ziffern blieben erhalten. Nur E auf 1 geändert, erneut geprüft: „Ergebnis und Rechenweg stimmen“.
+4. Isolierte Testinstanz auf separatem lokalen Port, ohne echte Lernprofile: 999999+1, sechs Nullen und die Millionenziffer von rechts nach links, fünf Hilfs-1 manuell eingetragen. Bis zur Gesamtabgabe keine Bewertung.
 
-Das tatsächliche `app.js` wurde mit minimalen Dokument-/Speicherdoubles geladen. Die Klick-Handler wurden durchlaufen: Fortsetzen, Ergebnis, fehlende Hilfszahl, Hilfszahl manuell, spätere Korrektur, führende Ergebnisstelle, Abschluss, Pause, Fortschritt und Reset mit zweiter Bestätigung.
+## Responsive Prüfung: 390×844
 
-Für jede Zeile der Vierstellendarstellung wurde die identische absolute Stellenfolge T/H/Z/E im erzeugten HTML geprüft. Dies prüft die Verbindung von UI und Rechenkern, **keine Pixelgeometrie eines Browsers**.
+Screenshot der siebenstelligen Rechnung visuell geprüft. Gemessene Rasterspalten M bis E:
 
-### Simulierter Offlinebetrieb
+| Stelle | x | Breite |
+| --- | ---: | ---: |
+| M | 39 px | 48 px |
+| HT | 87 px | 48 px |
+| ZT | 135 px | 48 px |
+| T | 183 px | 48 px |
+| H | 231 px | 48 px |
+| Z | 279 px | 48 px |
+| E | 327 px | 48 px |
 
-Der echte Service-Worker-Code wurde in einer isolierten JavaScript-Testumgebung ausgeführt: alle vorkonfigurierten Dateien vorhanden, relative Auflösung unter `/AddiSub/`, Installation und Aktivierung, ausschließlich alte AddiSub-Caches gelöscht, Programmdateien ohne Netzantwort aus Cache geliefert, Fremdursprung nicht abgefangen. Laufzeitdateien enthalten keine externen URLs oder domain-root-absoluten Assets.
+Alle Zeilen haben pro Stelle dieselbe x-Position. Dokumentbreite: 390 px. Kein horizontaler Überlauf. Prüfknopf-Unterkante: 711,5 px bei 844 px Bildschirmhöhe. Ziffern, Hilfszeile, Tasten und Prüfknopf sind gleichzeitig sichtbar. Der temporäre Viewport wurde anschließend zurückgesetzt.
 
-## Nicht als bestanden gewertet
+## Reale Offlineprüfung
 
-- Echter Browserstart: Playwright konnte Edge wegen `spawn EPERM` nicht starten. Der integrierte Browser blockierte sowohl `127.0.0.1` als auch `localhost` mit `ERR_BLOCKED_BY_CLIENT`.
-- iPhone-13-Geometrie 390×844: responsive CSS implementiert, aber keine reale Screenshot-/Geometrieabnahme.
-- Sieben Spalten: mathematisch feste Stellen und flexibles Grid implementiert; tatsächliche Touchbedienung auf iPhone nicht abgenommen.
-- iOS-Safari, Home-Bildschirm-Installation, echter Flugmodus, Cacheupdate bei offener App und native Freigabe der PNG-Karte nicht ausgeführt.
-- GitHub Pages nicht veröffentlicht; ein echter HTTPS-Endpunkt wurde nicht geprüft.
+Nach vollständiger Installation wurde der isolierte Testserver beendet. Ein unabhängiger HTTP-Aufruf bestätigte, dass der Server nicht mehr erreichbar war.
 
-Diese offenen Prüfungen verhindern die Aussage „vollständig abgenommen“. Sie sind keine bekannten mathematischen Fehler, dürfen aber auch nicht durch simulierte Tests als erledigt ausgegeben werden.
+Anschließend im Browser erfolgreich:
+
+- App neu geladen: Startseite aus Cache verfügbar.
+- Training fortgesetzt: sieben Ergebnisziffern und fünf manuelle Hilfszahlen wiederhergestellt.
+- 999999+1 vollständig offline geprüft.
+- Phase A erst nach Abschluss der Rechnung beendet; der Testfall enthielt bewusst bereits abgelaufene Phasenzeit.
+- Phase B offline gestartet.
+- Startseite und alle zehn verfügbaren Stufen offline geöffnet.
+
+Cacheversion: `addisub-v1.1.0`. Keine Änderung am Speicherkey und keine Löschung des Lernstands für das Update.
+
+## Grenzen
+
+Die responsive Abnahme erfolgte im integrierten Browser, nicht auf physischem iPhone/Safari. Ein vollständiger Flugmodus auf einem realen Gerät, iOS-Installation und native Kartenfreigabe bleiben offen. Kartenmodul und Erfolgsformel wurden nicht verändert; Erfolgs-/Streak-Logik ist automatisiert geprüft. Der veröffentlichte GitHub-Pages-Endpunkt wurde in dieser Runde nicht verändert oder geprüft.

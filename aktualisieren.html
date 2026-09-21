@@ -1,0 +1,22 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AddiSub aktualisieren</title><style>body{font:20px/1.6 Arial,sans-serif;color:#142e41;background:#f3f6f8;max-width:520px;margin:60px auto;padding:20px}h1{font-size:30px}a{color:#163f59}</style></head><body><h1>AddiSub aktualisieren</h1><p id="status" role="status">Die neue Version wird geladen. Dein Lernstand bleibt erhalten.</p><p><a href="./">Zur App</a></p><script>
+(async()=>{
+ const status=document.getElementById('status');
+ try{
+  if(!('serviceWorker' in navigator)){location.replace('./');return;}
+  const registration=await navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'});
+  await registration.update();
+  let worker=registration.installing||registration.waiting;
+  if(worker){
+   await new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(Error('Zeitüberschreitung')),30000);
+    const check=()=>{
+     if(worker.state==='installed')worker.postMessage({type:'ACTIVATE_UPDATE'});
+     if(worker.state==='activated'){clearTimeout(timer);worker.removeEventListener('statechange',check);resolve();}
+     if(worker.state==='redundant'){clearTimeout(timer);worker.removeEventListener('statechange',check);reject(Error('Installation fehlgeschlagen'));}
+    };worker.addEventListener('statechange',check);check();
+   });
+  }
+  location.replace('./');
+ }catch{status.textContent='Die Aktualisierung konnte nicht geladen werden. Bitte mit Internetverbindung erneut öffnen. Dein Lernstand wurde nicht gelöscht.';}
+})();
+</script></body></html>
