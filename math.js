@@ -69,7 +69,10 @@ export function checkCalculation(t,results,helpers){
    issue(type,'result',p);
   }
  }
- for(const p of Object.keys(results).map(Number))if(results[p]!==null&&p>=t.columns.length)issue('FINAL_COLUMN_ERROR','result',p,t.columns.length-1);
+ for(const p of Object.keys(results).map(Number))if(results[p]!=null&&p>=t.columns.length){
+  if(Number.isInteger(p)&&p<gridWidth(t)&&results[p]===0)fields.result[p]=true;
+  else issue('FINAL_COLUMN_ERROR','result',p,t.columns.length-1);
+ }
  for(const p of expectedHelpers){fields.helper[p]=helpers[p]===1;if(helpers[p]!==1){issue(add?'CARRY_MISSING':'SUBTRACTION_HELPER_MISSING','helper',p,p-1);if(fields.result[p-1]===false)issue(add?'CARRY_NOT_RECOGNIZED':'SUBTRACTION_HELPER_NOT_RECOGNIZED','helper',p,p-1);}}
  for(const p of extras)issue(missing.length?(add?'CARRY_WRONG_COLUMN':'SUBTRACTION_HELPER_WRONG_COLUMN'):'UNNECESSARY_CARRY','helper',p,Math.min(Math.max(0,p-1),t.columns.length-1));
  const entered=t.columns.map(c=>results[c.place]),expected=t.columns.map(c=>c.expected);

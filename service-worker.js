@@ -1,4 +1,4 @@
-const CACHE='addisub-v1.1.2';
+const CACHE='addisub-v1.1.3';
 const FILES=['./','./index.html','./styles.css','./app.js','./config.js','./math.js','./learning.js','./storage.js','./session.js','./rewards.js','./share.js','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')event.waitUntil(self.skipWaiting());});
