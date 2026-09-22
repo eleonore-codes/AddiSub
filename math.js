@@ -62,7 +62,8 @@ export function checkCalculation(t,results,helpers){
  let value=0,hasDigit=false;
  for(const [p,n] of Object.entries(results)){if(n===null)continue;hasDigit=true;value+=n*10**Number(p);}
  const numericCorrect=hasDigit&&value===t.result;
- for(const c of t.columns){const p=c.place,correct=results[p]===c.expected;fields.result[p]=correct;
+ // Only leading zero places may be blank; inner zeros and the zero result itself are required.
+ for(const c of t.columns){const p=c.place,correct=results[p]===c.expected||(p>=width(t.result)&&results[p]==null);fields.result[p]=correct;
   if(!correct){const without=add?(c.top+c.bottom)%10:(c.top-c.bottom+10)%10;
    const type=results[p]==null?'FINAL_COLUMN_ERROR':c.incoming&&results[p]===without?(add?'PREVIOUS_CARRY_NOT_USED':'SUBTRACTION_HELPER_NOT_USED'):c.zeroTransition?'ZERO_TRANSITION_ERROR':p>=t.operandWidth?'FINAL_COLUMN_ERROR':add?'BASIC_ADDITION_ERROR':'BASIC_SUBTRACTION_ERROR';
    issue(type,'result',p);
